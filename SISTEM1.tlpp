@@ -1,0 +1,25 @@
+#include "Protheus.ch"
+#include "Totvs.ch"
+
+/*/{Protheus.doc} SISTEM1
+(long_description)
+@type user function
+@author user
+@since 07/01/2025
+@version version
+@param param_name, param_type, param_descr
+@return return_var, return_type, return_description
+@example
+(examples)
+@see (links_or_references)
+/*/
+
+User Function SISTEM1()
+
+Local xPar1 := 7
+Local xPar2 := 7
+Local xPar3 := 7
+
+r := (xPar1+xPar2+xPar3)/3
+
+Return MsgInfo(r, "Media")

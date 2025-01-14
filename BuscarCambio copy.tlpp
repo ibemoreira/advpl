@@ -1,0 +1,112 @@
+
+
+User Function BuscarCambio()
+    Local aArea         := GetArea()
+    Local aHeader       := {}
+    Local nDolar        := 0
+    Local nEuro         := 0
+    Local nIene         := 0
+    Local aMoedas       := {"USD", "EUR0", "JPY"}
+    Local nIndex
+    Local cMenssagem    := ''
+    Local oRestClient   := FWRest():New("https://economia.awesomeapi.com.br/json/last")
+    Local oJsObj        := NIL
+    
+    aadd(aHeader,'User-Agent: Mozilla/4.0 (compatible; Protheus '+GetBuild()+')')
+    aAdd(aHeader,'Content-Type: application/json; charset=utf-8')
+
+
+
+       
+    ////////////////////////////////////////////////////////////////
+    // Consulta DOLAR na Api
+    oRestClient:setPath("/USD-BRL")
+    If oRestClient:Get(aHeader)
+        
+        //Deserealiza o Json
+        FWJsonDeserialize(oRestClient:CRESULT,@oJsObj)
+
+        nDolar := Val(oJsObj:USDBRL:bid)
+        cMenssagem  += "Dolar: "+Str(nDolar)+CRLF
+   
+        FreeObj(oJsObj)
+    Else
+        MsgInfo(oRestClient:GetLastError(),"Erro Api Awesome: ")
+    Endif
+
+    ////////////////////////////////////////////////////////////////
+    // Consulta EURO na Api
+    oRestClient:setPath("/EUR-BRL")
+    If oRestClient:Get(aHeader)
+        
+        //Deserealiza o Json
+        FWJsonDeserialize(oRestClient:CRESULT,@oJsObj)
+
+        nEuro       := Val(oJsObj:EURBRL:bid)
+        cMenssagem  += "Euro: "+Str(nEuro)+CRLF
+   
+        FreeObj(oJsObj)
+    Else
+        MsgInfo(oRestClient:GetLastError(),"Erro Api Awesome: ")
+    Endif
+    
+
+    ////////////////////////////////////////////////////////////////
+    // Consulta IENE na Api
+    oRestClient:setPath("/JPY-BRL")
+    If oRestClient:Get(aHeader)
+        
+        //Deserealiza o Json
+        FWJsonDeserialize(oRestClient:CRESULT,@oJsObj)
+
+        nIene := Val(oJsObj:JPYBRL:bid)
+        cMenssagem  += "Iene: "+Str(nIene)+CRLF
+   
+        FreeObj(oJsObj)
+    Else
+        MsgInfo(oRestClient:GetLastError(),"Erro Api Awesome: ")
+    Endif
+
+
+
+    //Manipulacao de dados
+    DbSelectArea("SM2")
+
+    DbSetOrder(1)
+    dbSeek(Date()) //buscando se existe um registro para a data pelo indice 
+
+    If Found() // Se o registro for encontrado 
+        RecLock("SM2", .F.)	// .F. para manipular o reg 
+        DbDelete() //Deletando o registro existente
+        DbCommit()
+        
+
+        //Incluir novo Registro 
+        RecLock("SM2", .T.)	
+
+        // Preencher os campos do novo registro
+        SM2->M2_DATA := Date()
+        SM2->M2_MOEDA2 := nDolar
+        //Alias1->M2_MOEDA3 := nFir
+        SM2->M2_MOEDA4 := nEuro
+        SM2->M2_MOEDA5 := nIene
+
+        MsUnLock() // Confirma e finaliza a operação
+        MsgInfo("Moedas atualizadas com sucesso", "Sucesso")
+    Else
+        //Incluir novo Registro 
+        RecLock("SM2", .T.)	
+
+        // Preencher os campos do novo registro
+        SM2->M2_DATA := Date()
+        SM2->M2_MOEDA2 := nDolar
+        //Alias1->M2_MOEDA3 := nFir
+        SM2->M2_MOEDA4 := nEuro
+        SM2->M2_MOEDA5 := nIene
+
+        MsUnLock() // Confirma e finaliza a operação
+        MsgInfo("Moedas atualizadas com sucesso", "Sucesso")
+    Endif
+
+    RestArea(aArea)
+Return

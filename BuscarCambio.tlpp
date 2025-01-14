@@ -1,0 +1,82 @@
+
+
+User Function BuscarCambio()
+    Local aArea         := GetArea()
+    Local aHeader       := {}
+    Local nDolar        := 0
+    Local nEuro         := 0
+    Local nIene         := 0
+    Local aMoedas       := {"USD", "EUR", "JPY"}
+    Local nIndex
+    Local oRestClient   := FWRest():New("https://economia.awesomeapi.com.br/json/last")
+    Local oJsObj        := NIL
+    
+    aadd(aHeader,'User-Agent: Mozilla/4.0 (compatible; Protheus '+GetBuild()+')')
+    aAdd(aHeader,'Content-Type: application/json; charset=utf-8')
+
+    For nIndex := 1 To Len(aMoedas)
+        oRestClient:setPath("/"+aMoedas[nIndex]+"-BRL")
+        If oRestClient:Get(aHeader)
+            
+            //Deserealiza o Json
+            FWJsonDeserialize(oRestClient:CRESULT,@oJsObj)
+            
+            if aMoedas[nIndex] == "USD"
+                nDolar := Val(oJsObj:USDBRL:bid)  
+            endif
+
+            if aMoedas[nIndex] == "EUR"
+                nEuro := Val(oJsObj:EURBRL:bid) 
+            endif
+
+            if aMoedas[nIndex] == "JPY"
+                nIene := Val(oJsObj:JPYBRL:bid) 
+            endif
+
+    
+            FreeObj(oJsObj)
+        Else
+            MsgInfo(oRestClient:GetLastError(),"Erro Api Awesome: ")
+        Endif
+    Next
+
+
+    //Manipulacao de dados
+    DbSelectArea("SM2")
+
+    DbSetOrder(1)
+    dbSeek(Date()) //buscando se existe um registro para a data pelo indice 
+
+    If Found() // Se o registro for encontrado 
+        RecLock("SM2", .F.)	// .F. para manipular o reg 
+        DbDelete() //Deletando o registro existente
+        DbCommit()
+        
+
+        //Incluir novo Registro 
+        RecLock("SM2", .T.)	
+
+        // Preencher os campos do novo registro
+        SM2->M2_DATA := Date()
+        SM2->M2_MOEDA2 := nDolar
+        SM2->M2_MOEDA4 := nEuro
+        SM2->M2_MOEDA5 := nIene
+
+        MsUnLock() // Confirma e finaliza a operação
+        MsgInfo("Moedas atualizadas com sucesso", "Sucesso")
+    Else
+        //Incluir novo Registro 
+        RecLock("SM2", .T.)	
+
+        // Preencher os campos do novo registro
+        SM2->M2_DATA := Date()
+        SM2->M2_MOEDA2 := nDolar
+        SM2->M2_MOEDA4 := nEuro
+        SM2->M2_MOEDA5 := nIene
+
+        MsUnLock() // Confirma e finaliza a operação
+        MsgInfo("Moedas atualizadas com sucesso", "Sucesso")
+    Endif
+
+    RestArea(aArea)
+Return

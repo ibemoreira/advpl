@@ -1,0 +1,30 @@
+#include "Protheus.ch"
+#include "Totvs.ch"
+
+/*/{Protheus.doc} SISTEM2
+    (long_description)
+    @type  Function
+    @author user
+    @since 07/01/2025
+    @version version
+    @param param_name, param_type, param_descr
+    @return return_var, return_type, return_description
+    @example
+    (examples)
+    @see (links_or_references)
+    /*/
+User Function SISTEM2()
+
+Local nContador := 1
+Local xNumero := " "
+Local xRaizQuad := 0
+
+
+xNumero := FwInputBox("Qual a Raiz Quadrada de:", xNumero)
+xNumero := GetDToVal(xNumero)
+xRaizQuad := xNumero ** 0.5
+MsgInfo("Raiza quadrada de " + Str(xNumero) + " é: " + Str(xRaizQuad), "====== Raiz Quadrada ======")
+nContador++
+
+
+Return U_SISTEM2()
